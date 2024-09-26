@@ -10,17 +10,17 @@ import (
  * Get the project ID for the repository
  * Will use the flag if it is set, otherwise prompt the user with a list of projects
  */
-func GetProjectIdPrompt(label string, projectIdFlag int, projects map[int]projectService.ProjectData) (int, error) {
+func GetProjectIdPrompt(label string, projectIdFlag int, projects map[int]projectService.Project) (int, error) {
 
 	if projectIdFlag != -1 {
 		return projectIdFlag, nil
 	}
 
-	items := []projectService.ProjectData{}
+	items := []projectService.Project{}
 
 	for _, project := range projects {
 
-		items = append(items, projectService.ProjectData{
+		items = append(items, projectService.Project{
 			Id:           project.Id,
 			Name:         project.Name,
 			LastSync:     util.DateTimeToDateStr(project.LastSync),

@@ -1,6 +1,6 @@
 package projectsService
 
-type ProjectData struct {
+type Project struct {
 	// The fields should match the JSON structure
 	// You can use `json` tags to map the fields correctly
 	Id           int    `json:"id"`

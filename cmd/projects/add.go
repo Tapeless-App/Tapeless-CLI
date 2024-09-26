@@ -96,7 +96,7 @@ var addProjectsCmd = &cobra.Command{
 			return
 		}
 
-		projectData, err := projectsService.CreateProject(
+		Project, err := projectsService.CreateProject(
 			projectsService.ProjectsCreateRequest{
 				Name:         projectName,
 				ProjectStart: projectStart,
@@ -108,7 +108,7 @@ var addProjectsCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Printf("Project '%s' (id: '%d') created successfully!\n", projectData.Name, projectData.Id)
+		fmt.Printf("Project '%s' (id: '%d') created successfully!\n", Project.Name, Project.Id)
 
 		fmt.Println("Syncing projects...")
 

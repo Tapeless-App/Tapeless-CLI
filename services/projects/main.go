@@ -9,14 +9,14 @@ import (
 	"tapeless.app/tapeless-cli/util"
 )
 
-func CreateProject(request ProjectsCreateRequest) (ProjectData, error) {
-	var projectData ProjectData
-	err := util.MakeRequestAndParseResponse("POST", "http://localhost:4000/cli/projects", request, &projectData)
+func CreateProject(request ProjectsCreateRequest) (Project, error) {
+	var Project Project
+	err := util.MakeRequestAndParseResponse("POST", "http://localhost:4000/cli/projects", request, &Project)
 
-	return projectData, err
+	return Project, err
 }
 
-func getProjects() ([]ProjectData, error) {
+func getProjects() ([]Project, error) {
 	resp, err := util.MakeRequest("GET", "http://localhost:4000/cli/projects", nil)
 
 	if err != nil {
@@ -31,7 +31,7 @@ func getProjects() ([]ProjectData, error) {
 		return nil, err
 	}
 
-	var projectsData []ProjectData
+	var projectsData []Project
 
 	err = json.Unmarshal(body, &projectsData)
 
@@ -43,8 +43,8 @@ func DeleteProject(projectId int) error {
 	return err
 }
 
-func persistProjects(projectsData []ProjectData) (map[int]ProjectData, error) {
-	projectsMap := make(map[int]ProjectData)
+func persistProjects(projectsData []Project) (map[int]Project, error) {
+	projectsMap := make(map[int]Project)
 	for _, project := range projectsData {
 		projectsMap[project.Id] = project
 	}
@@ -53,7 +53,7 @@ func persistProjects(projectsData []ProjectData) (map[int]ProjectData, error) {
 	return projectsMap, err
 }
 
-func SyncProjects() (map[int]ProjectData, error) {
+func SyncProjects() (map[int]Project, error) {
 	projectsData, err := getProjects()
 
 	if err != nil {

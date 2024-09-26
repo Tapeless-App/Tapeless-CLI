@@ -92,7 +92,7 @@ var (
 						return
 					}
 
-					matchingProjects := make(map[int]projectsService.ProjectData)
+					matchingProjects := make(map[int]projectsService.Project)
 
 					for _, entry := range matchingEntries {
 						matchingProjects[entry.ProjectId] = projects[entry.ProjectId]

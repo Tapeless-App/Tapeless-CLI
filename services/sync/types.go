@@ -1,4 +1,4 @@
-package sync
+package syncService
 
 type Commit struct {
 	CommitHash string   `json:"commit_hash"`
