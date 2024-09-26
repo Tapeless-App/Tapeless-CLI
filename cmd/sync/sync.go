@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/cmd"
 	projectsService "tapeless.app/tapeless-cli/services/projects"
 	reposService "tapeless.app/tapeless-cli/services/repos"
@@ -45,105 +46,103 @@ var (
 				return
 			}
 
-			testRepo := repositories[0]
+			for repoIndex := range repositories {
 
-			fmt.Println("Syncing repository:", testRepo)
+				repo := &repositories[repoIndex]
 
-			authorFlag := fmt.Sprintf("--author=%s", testRepo.AuthorEmail)
-			sinceFlag := fmt.Sprintf("--since=%s", testRepo.LatestSync)
+				fmt.Println("Syncing repository:", repo.Name)
 
-			if testRepo.LatestSync == "" {
-				sinceFlag = fmt.Sprintf("--since=%s", util.DateTimeToDateStr(projects[testRepo.ProjectId].ProjectStart))
-			}
+				authorFlag := fmt.Sprintf("--author=%s", repo.AuthorEmail)
+				sinceFlag := fmt.Sprintf("--since=%s", repo.LatestSync)
 
-			fmt.Println("Running command: git log --all", authorFlag, sinceFlag, "--date=format:%Y-%m-%d %H:%M:%S", "--pretty=format:%H,%ad,%s")
-
-			gitCommitsCmd := exec.Command("git", "log", "--all", authorFlag, sinceFlag, "--date=format:%Y-%m-%d %H:%M:%S", "--pretty=format:%H,%ad,%s")
-
-			gitCommitsCmd.Dir = testRepo.Path
-			var gitCommitsCmdOut bytes.Buffer
-			gitCommitsCmd.Stdout = &gitCommitsCmdOut
-
-			err = gitCommitsCmd.Run()
-
-			if err != nil {
-				fmt.Println("Error running git log command:", err)
-				return
-			}
-
-			fmt.Println("Git log output:", gitCommitsCmdOut.String())
-
-			// Split the output by line
-			commits := strings.Split(gitCommitsCmdOut.String(), "\n")
-			var commitList []Commit
-
-			for _, commitLine := range commits {
-				// Split each line into commit hash, date, and message
-				parts := strings.SplitN(commitLine, ",", 3)
-				if len(parts) < 3 {
-					continue
+				if repo.LatestSync == "" {
+					sinceFlag = fmt.Sprintf("--since=%s", util.DateTimeToDateStr(projects[repo.ProjectId].ProjectStart))
 				}
-				commitHash := parts[0]
-				date := parts[1]
-				message := parts[2]
 
-				// Find the branches that contain this commit
-				branchesCmd := exec.Command("git", "branch", "--contains", commitHash)
-				var branchesOut bytes.Buffer
-				branchesCmd.Stdout = &branchesOut
-				err = branchesCmd.Run()
+				gitCommitsCmd := exec.Command("git", "log", "--all", authorFlag, sinceFlag, "--date=format:%Y-%m-%d %H:%M:%S", "--pretty=format:%H,%ad,%s")
+
+				gitCommitsCmd.Dir = repo.Path
+				var gitCommitsCmdOut bytes.Buffer
+				gitCommitsCmd.Stdout = &gitCommitsCmdOut
+
+				err = gitCommitsCmd.Run()
+
 				if err != nil {
-					fmt.Println("Error running git branch:", err)
+					fmt.Println("Error running git log command:", err)
 					return
 				}
 
-				// Process the branches output, clean and split
-				branches := strings.Fields(branchesOut.String())
-				for i, branch := range branches {
-					branches[i] = strings.TrimSpace(branch)
+				// Split the output by line
+				commits := strings.Split(gitCommitsCmdOut.String(), "\n")
+				var commitList []Commit
+
+				for _, commitLine := range commits {
+					// Split each line into commit hash, date, and message
+					parts := strings.SplitN(commitLine, ",", 3)
+					if len(parts) < 3 {
+						continue
+					}
+					commitHash := parts[0]
+					date := parts[1]
+					message := parts[2]
+
+					// Find the branches that contain this commit
+					branchesCmd := exec.Command("git", "branch", "--contains", commitHash)
+					var branchesOut bytes.Buffer
+					branchesCmd.Stdout = &branchesOut
+					err = branchesCmd.Run()
+					if err != nil {
+						fmt.Println("Error running git branch:", err)
+						return
+					}
+
+					// Process the branches output, clean and split
+					branches := strings.Fields(branchesOut.String())
+					for i, branch := range branches {
+						branches[i] = strings.TrimSpace(branch)
+					}
+
+					// Create a commit entry
+					commit := Commit{
+						CommitHash: commitHash,
+						Date:       date,
+						Message:    message,
+						Branches:   branches,
+					}
+					commitList = append(commitList, commit)
 				}
 
-				// Create a commit entry
-				commit := Commit{
-					CommitHash: commitHash,
-					Date:       date,
-					Message:    message,
-					Branches:   branches,
+				if len(commitList) == 0 {
+					fmt.Println("No new commits found for repository:", repo.Name)
+					continue
+				} else {
+					fmt.Println("Found", len(commitList), "new commits for repository:", repo.Name)
 				}
-				commitList = append(commitList, commit)
+
+				// Convert the list of commits to JSON
+				jsonOutput, err := json.Marshal(commitList)
+				if err != nil {
+					fmt.Println("Error marshaling JSON:", err)
+					return
+				}
+
+				uploadUrl := fmt.Sprintf("http://localhost:4000/cli/projects/%d/gitConfigs/%d/commits", repo.ProjectId, repo.GitConfigId)
+
+				_, err = util.MakeRequest("POST", uploadUrl, bytes.NewBuffer(jsonOutput))
+
+				if err != nil {
+					fmt.Println("Error uploading commits:", err)
+					return
+				}
+
+				fmt.Println("Commits uploaded successfully - updating latest sync time")
+
+				repo.LatestSync = time.Now().Format("2006-01-02T15:04:05")
+
 			}
 
-			// Convert the list of commits to JSON
-			jsonOutput, err := json.Marshal(commitList)
-			if err != nil {
-				fmt.Println("Error marshaling JSON:", err)
-				return
-			}
-
-			// Output the JSON string
-			confirmUploadPrompt := promptui.Prompt{
-				Label:     fmt.Sprintf("Upload %d commit(s) to Tapeless?", len(commitList)),
-				IsConfirm: true,
-				Default:   "y",
-			}
-
-			_, err = confirmUploadPrompt.Run()
-
-			if err != nil {
-				fmt.Println("Aborted upload")
-				return
-			}
-
-			uploadUrl := fmt.Sprintf("http://localhost:4000/cli/projects/%d/gitConfigs/%d/commits", testRepo.ProjectId, testRepo.GitConfigId)
-
-			_, err = util.MakeRequest("POST", uploadUrl, bytes.NewBuffer(jsonOutput))
-
-			if err != nil {
-				fmt.Println("Error uploading commits:", err)
-				return
-			}
-
-			fmt.Println("Commits uploaded successfully")
+			viper.Set("repositories", repositories)
+			viper.WriteConfig()
 
 		},
 	}
