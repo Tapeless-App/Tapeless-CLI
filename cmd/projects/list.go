@@ -26,7 +26,8 @@ var listPorjectsCmd = &cobra.Command{
 		}
 
 		// Print projects
-		for _, project := range projectsData {
+		for i := len(projectsData) - 1; i >= 0; i-- {
+			project := &projectsData[i]
 			fmt.Printf("====== Project: %s ======\n", project.Name)
 			fmt.Println("ID:", project.Id)
 			fmt.Println("Project Start:", project.ProjectStart)

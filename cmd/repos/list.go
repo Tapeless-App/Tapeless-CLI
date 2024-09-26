@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	projectsService "tapeless.app/tapeless-cli/services/projects"
 	reposService "tapeless.app/tapeless-cli/services/repos"
 )
 
@@ -19,8 +20,16 @@ var (
 		Aliases: []string{"ls"},
 		Run: func(cmd *cobra.Command, args []string) {
 
+			// Get a list of current projects
+			projects, err := projectsService.SyncProjects()
+
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+
 			// Sync repositories first
-			reposData, err := reposService.GetPersistedRepositories()
+			reposData, err := reposService.SyncRepositories(projects)
 
 			if err != nil {
 				fmt.Println("Error:", err)
@@ -47,7 +56,7 @@ var (
 			}
 
 			if !hasRepos {
-				fmt.Println("No repositories found for project with id:", projectIdFlag)
+				fmt.Println("No repositories found")
 			}
 
 		},

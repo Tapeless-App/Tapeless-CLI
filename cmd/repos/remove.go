@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/prompts"
 	projectsService "tapeless.app/tapeless-cli/services/projects"
 	reposService "tapeless.app/tapeless-cli/services/repos"
@@ -92,10 +91,16 @@ var (
 						return
 					}
 
-					matchingProjects := make(map[int]projectsService.Project)
+					matchingProjects := make([]projectsService.Project, 0)
 
 					for _, entry := range matchingEntries {
-						matchingProjects[entry.ProjectId] = projects[entry.ProjectId]
+						project, err := projectsService.FindProjectById(entry.ProjectId, &projects)
+
+						if err != nil {
+							continue
+						}
+
+						matchingProjects = append(matchingProjects, project)
 					}
 
 					projectId, err := prompts.GetProjectIdPrompt("Select the project to remove the repository from", projectIdFlag, matchingProjects)
@@ -138,8 +143,12 @@ var (
 				}
 			}
 
-			viper.Set("repositories", repositories)
-			viper.WriteConfig()
+			err = reposService.PersistRepositories(repositories)
+
+			if err != nil {
+				fmt.Println("Error persisting repositories:", err)
+				return
+			}
 
 		},
 	}

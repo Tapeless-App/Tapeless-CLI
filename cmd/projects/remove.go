@@ -2,6 +2,7 @@ package projects
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -34,7 +35,16 @@ var removeProjectCmd = &cobra.Command{
 			return
 		}
 
-		project := projects[projectId]
+		projectIndex := slices.IndexFunc(projects, func(project projectService.Project) bool {
+			return project.Id == projectId
+		})
+
+		if projectIndex == -1 {
+			fmt.Println("Project not found")
+			return
+		}
+
+		project := &projects[projectIndex]
 
 		confirmationPrompt := promptui.Prompt{
 			Label:     fmt.Sprintf("Are you sure you want to remove project '%s' with ID %d?", project.Name, projectId),

@@ -25,18 +25,18 @@ var (
 		Short: "Sync the commits from your repositories with Tapeless",
 		Run: func(cmd *cobra.Command, args []string) {
 
-			// Sync repositories
-			repositories, err := reposService.GetPersistedRepositories()
-
-			if err != nil {
-				fmt.Println("Error reading repositories:", err)
-				return
-			}
-
 			projects, err := projectsService.SyncProjects()
 
 			if err != nil {
 				fmt.Println("Error reading projects:", err)
+				return
+			}
+
+			// Ensure that remote gitConfigs and local repositories are in sync
+			repositories, err := reposService.SyncRepositories(projects)
+
+			if err != nil {
+				fmt.Println("Error reading repositories:", err)
 				return
 			}
 

@@ -31,11 +31,11 @@ func getProjects() ([]Project, error) {
 		return nil, err
 	}
 
-	var projectsData []Project
+	var projects []Project
 
-	err = json.Unmarshal(body, &projectsData)
+	err = json.Unmarshal(body, &projects)
 
-	return projectsData, err
+	return projects, err
 }
 
 func DeleteProject(projectId int) error {
@@ -43,28 +43,38 @@ func DeleteProject(projectId int) error {
 	return err
 }
 
-func persistProjects(projectsData []Project) (map[int]Project, error) {
-	projectsMap := make(map[int]Project)
-	for _, project := range projectsData {
-		projectsMap[project.Id] = project
-	}
-	viper.Set("projects", projectsMap)
+func persistProjects(projects []Project) ([]Project, error) {
+	viper.Set("projects", projects)
 	err := viper.WriteConfig()
-	return projectsMap, err
+	return projects, err
 }
 
-func SyncProjects() (map[int]Project, error) {
-	projectsData, err := getProjects()
+func SyncProjects() ([]Project, error) {
+	projects, err := getProjects()
 
 	if err != nil {
 		return nil, err
 	}
 
-	projectMap, err := persistProjects(projectsData)
+	_, err = persistProjects(projects)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return projectMap, nil
+	return projects, nil
+}
+
+func FindProjectById(projectId int, projects *[]Project) (Project, error) {
+	if projects == nil {
+		return Project{}, fmt.Errorf("projects is nil")
+	}
+
+	for _, project := range *projects {
+		if project.Id == projectId {
+			return project, nil
+		}
+	}
+
+	return Project{}, fmt.Errorf("project not found")
 }

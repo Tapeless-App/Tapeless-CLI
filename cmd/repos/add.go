@@ -68,14 +68,21 @@ var (
 				return
 			}
 
-			projectName := projects[projectId].Name
-			gitConfigName := strings.Join([]string{projectName, localGitConfig.Name}, "/")
+			project, err := projectService.FindProjectById(projectId, &projects)
+
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+
+			projectName := project.Name
+			localGitConfig.Name = strings.Join([]string{projectName, localGitConfig.Name}, "/")
 
 			fmt.Println("Current path:", localGitConfig.Path)
 			fmt.Println("Email Name:", localGitConfig.AuthorEmail)
 			fmt.Println("Repo Name:", localGitConfig.Name)
 			fmt.Println("Origin:", localGitConfig.OriginUrl)
-			fmt.Println("Git Config Name:", gitConfigName)
+			fmt.Println("Git Config Name:", localGitConfig.Name)
 
 			existingConfigIndex := slices.IndexFunc(repositories, func(r repoService.Repository) bool {
 				return r.ProjectId == projectId && r.Path == localGitConfig.Path
