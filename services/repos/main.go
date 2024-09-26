@@ -30,9 +30,14 @@ func CreateGitConfig(projectId int, localRepo LocalRepositoryConfig) (GitConfigR
 
 	gitConfigResponse := GitConfigResponse{}
 
-	err := util.MakeRequestAndParseResponse("POST", "http://localhost:4000/cli/git_configs", gitConfigRequest, &gitConfigResponse)
+	err := util.MakeRequestAndParseResponse("POST", fmt.Sprintf("http://localhost:4000/cli/projects/%d/gitConfigs", projectId), gitConfigRequest, &gitConfigResponse)
 
 	return gitConfigResponse, err
+}
+
+func DeleteGitConfig(projectId int, gitConfigId int) error {
+	_, err := util.MakeRequest("DELETE", fmt.Sprintf("http://localhost:4000/cli/projects/%d/gitConfigs/%d", projectId, gitConfigId), nil)
+	return err
 }
 
 func GetLocalRepositoryConfig(path string) (LocalRepositoryConfig, error) {
@@ -102,3 +107,7 @@ func GetLocalRepositoryConfig(path string) (LocalRepositoryConfig, error) {
 	}, nil
 
 }
+
+// func GetCommitsJsonStringForRepository(repo Repository) (string, error) {
+
+// }

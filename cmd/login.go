@@ -3,31 +3,14 @@ package cmd
 import (
 	"fmt"
 	"net/http"
-	"os/exec"
-	"runtime"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"tapeless.app/tapeless-cli/util"
 )
 
 func init() {
 	RootCmd.AddCommand(loginCmd)
-}
-
-func openBrowser(url string) error {
-	var err error
-
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
-	}
-	return err
 }
 
 // waitForJWT starts a local server and waits for the JWT to be sent back from the web login.
@@ -64,7 +47,7 @@ var loginCmd = &cobra.Command{
 		fmt.Println("Opening browser to log in...")
 
 		// Open browser for user to log in
-		err := openBrowser(loginURL)
+		err := util.OpenBrowser(loginURL)
 		if err != nil {
 			fmt.Println("Error opening browser:", err)
 			return

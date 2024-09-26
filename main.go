@@ -8,7 +8,8 @@ import (
 	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/cmd"
 	_ "tapeless.app/tapeless-cli/cmd/projects"
-	_ "tapeless.app/tapeless-cli/cmd/repo"
+	_ "tapeless.app/tapeless-cli/cmd/repos"
+	_ "tapeless.app/tapeless-cli/cmd/sync"
 )
 
 func main() {

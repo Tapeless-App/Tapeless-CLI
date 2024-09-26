@@ -8,4 +8,11 @@ type ProjectData struct {
 	LastSync     string `json:"lastSync"`
 	ProjectStart string `json:"projectStart"`
 	ProjectEnd   string `json:"projectEnd"`
+	Description  string `json:"description"`
+}
+
+type ProjectsCreateRequest struct {
+	Name         string `json:"name"`
+	ProjectStart string `json:"projectStart"`
+	ProjectEnd   string `json:"projectEnd"`
 }

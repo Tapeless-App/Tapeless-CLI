@@ -8,10 +8,10 @@ import (
 )
 
 func init() {
-	projectsCmd.AddCommand(listCmd)
+	projectsCmd.AddCommand(listPorjectsCmd)
 }
 
-var listCmd = &cobra.Command{
+var listPorjectsCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List all projects",
 	Aliases: []string{"ls"},

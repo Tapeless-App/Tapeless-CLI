@@ -2,11 +2,19 @@ package projectsService
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/util"
 )
+
+func CreateProject(request ProjectsCreateRequest) (ProjectData, error) {
+	var projectData ProjectData
+	err := util.MakeRequestAndParseResponse("POST", "http://localhost:4000/cli/projects", request, &projectData)
+
+	return projectData, err
+}
 
 func getProjects() ([]ProjectData, error) {
 	resp, err := util.MakeRequest("GET", "http://localhost:4000/cli/projects", nil)
@@ -28,7 +36,11 @@ func getProjects() ([]ProjectData, error) {
 	err = json.Unmarshal(body, &projectsData)
 
 	return projectsData, err
+}
 
+func DeleteProject(projectId int) error {
+	_, err := util.MakeRequest("DELETE", fmt.Sprintf("http://localhost:4000/cli/projects/%d", projectId), nil)
+	return err
 }
 
 func persistProjects(projectsData []ProjectData) (map[int]ProjectData, error) {

@@ -1,4 +1,4 @@
-package repo
+package repos
 
 import (
 	"fmt"
@@ -6,12 +6,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"tapeless.app/tapeless-cli/prompts"
 	projectService "tapeless.app/tapeless-cli/services/projects"
 	repoService "tapeless.app/tapeless-cli/services/repos"
-	"tapeless.app/tapeless-cli/util"
 )
 
 func init() {
@@ -51,7 +50,7 @@ var (
 				return
 			}
 
-			projectId, err := getProjectId(projectIdFlag, projects)
+			projectId, err := prompts.GetProjectIdPrompt("Select the project this repository belongs to", projectIdFlag, projects)
 
 			if err != nil {
 				fmt.Println("Project selection cancelled")
@@ -100,6 +99,8 @@ var (
 				LatestSync:  "",
 				ProjectId:   gitConfigResponse.ProjectId,
 				GitConfigId: gitConfigResponse.Id,
+				AuthorEmail: localGitConfig.AuthorEmail,
+				OriginUrl:   localGitConfig.OriginUrl,
 			})
 
 			viper.Set("repositories", repositories)
@@ -108,58 +109,3 @@ var (
 		},
 	}
 )
-
-/**
- * Get the project ID for the repository
- * Will use the flag if it is set, otherwise prompt the user with a list of projects
- */
-func getProjectId(projectIdFlag int, projects map[int]projectService.ProjectData) (int, error) {
-
-	if projectIdFlag != -1 {
-		return projectIdFlag, nil
-	}
-
-	items := []projectService.ProjectData{}
-
-	for _, project := range projects {
-
-		items = append(items, projectService.ProjectData{
-			Id:           project.Id,
-			Name:         project.Name,
-			LastSync:     util.FormatDate(project.LastSync),
-			ProjectStart: util.FormatDate(project.ProjectStart),
-			ProjectEnd:   util.FormatDate(project.ProjectEnd),
-		})
-	}
-
-	templates := &promptui.SelectTemplates{
-		Label:    `{{ . }}:`,
-		Active:   "> {{ .Name | cyan }} (id: {{ .Id }})",
-		Inactive: "  {{ .Name | cyan }} (id: {{ .Id }})",
-		Selected: "{{ .Name }}",
-		Details: `
---------- Project: {{ .Name }} ----------
-
-{{ "Id:" | faint }}	{{ .Id }}
-{{ "Project Start:" | faint }}	{{ .ProjectStart }}
-{{ "Project End:" | faint }}	{{ .ProjectEnd }}
-{{ "Last Sync:" | faint }}	{{ .LastSync }}
- 
-`,
-	}
-
-	prompt := promptui.Select{
-		Templates: templates,
-		Label:     "Select the project this repository belongs to",
-		Items:     items,
-		Size:      len(items),
-	}
-
-	index, _, err := prompt.Run()
-
-	if err != nil {
-		return -1, err
-	}
-
-	return items[index].Id, nil
-}

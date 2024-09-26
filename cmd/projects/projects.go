@@ -6,12 +6,13 @@ import (
 )
 
 func init() {
-
 	cmd.RootCmd.AddCommand(projectsCmd)
-
 }
 
-var projectsCmd = &cobra.Command{
-	Use:   "projects",
-	Short: "Manage your Tapeless projects",
-}
+var (
+	projectIdFlag int
+	projectsCmd   = &cobra.Command{
+		Use:   "projects",
+		Short: "Manage your Tapeless projects",
+	}
+)

@@ -1,10 +1,11 @@
 package util
 
 import (
+	"errors"
 	"time"
 )
 
-func FormatDate(input string) string {
+func DateTimeToDateStr(input string) string {
 
 	if len(input) == 0 {
 		return ""
@@ -18,4 +19,28 @@ func FormatDate(input string) string {
 
 	return date.Format("2006-01-02")
 
+}
+
+func VerifyStartBeforeEnd(start string, end string, layout string) error {
+	startDate, err := time.Parse(layout, start)
+
+	if err != nil {
+		return err
+	}
+
+	if end == "" {
+		return nil
+	}
+
+	endDate, err := time.Parse(layout, end)
+
+	if err != nil {
+		return err
+	}
+
+	if startDate.After(endDate) {
+		return errors.New("start date must be before end date")
+	}
+
+	return nil
 }
