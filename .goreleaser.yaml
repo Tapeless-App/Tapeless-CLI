@@ -11,12 +11,13 @@ version: 2
 builds:
   - env:
       - CGO_ENABLED=0
+    binary: tapeless
     goos:
       - linux
       - windows
       - darwin
     ldflags:
-      - -X tapeless.app/tapeless-cli/env.Version=0.0.2
+      - -X tapeless.app/tapeless-cli/env.Version=0.0.3
       - -X tapeless.app/tapeless-cli/env.ApiURL=https://api.tapeless.app/cli
       - -X tapeless.app/tapeless-cli/env.WebURL=https://tapeless.app
       - -X tapeless.app/tapeless-cli/env.LoginCallbackPort=8080
@@ -25,7 +26,7 @@ archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
-      {{ .ProjectName }}_
+      tapeless_
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
