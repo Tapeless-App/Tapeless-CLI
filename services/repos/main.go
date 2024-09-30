@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"tapeless.app/tapeless-cli/env"
 	projectsService "tapeless.app/tapeless-cli/services/projects"
 	"tapeless.app/tapeless-cli/util"
 )
@@ -36,13 +37,13 @@ func CreateGitConfig(projectId int, localRepo LocalRepositoryConfig) (GitConfigR
 
 	gitConfigResponse := GitConfigResponse{}
 
-	err := util.MakeRequestAndParseResponse("POST", fmt.Sprintf("http://localhost:4000/cli/projects/%d/gitConfigs", projectId), gitConfigRequest, &gitConfigResponse)
+	err := util.MakeRequestAndParseResponse("POST", fmt.Sprintf("%s/projects/%d/gitConfigs", env.ApiURL, projectId), gitConfigRequest, &gitConfigResponse)
 
 	return gitConfigResponse, err
 }
 
 func DeleteGitConfig(projectId int, gitConfigId int) error {
-	_, err := util.MakeRequest("DELETE", fmt.Sprintf("http://localhost:4000/cli/projects/%d/gitConfigs/%d", projectId, gitConfigId), nil)
+	_, err := util.MakeRequest("DELETE", fmt.Sprintf("%s/projects/%d/gitConfigs/%d", env.ApiURL, projectId, gitConfigId), nil)
 	return err
 }
 
@@ -127,7 +128,7 @@ func SyncRepositories(projects []projectsService.Project) ([]Repository, error) 
 
 	for _, project := range projects {
 		projectGitConfigs := make([]GitConfigResponse, 0)
-		err := util.MakeRequestAndParseResponse("GET", fmt.Sprintf("http://localhost:4000/cli/projects/%d/gitConfigs", project.Id), nil, &projectGitConfigs)
+		err := util.MakeRequestAndParseResponse("GET", fmt.Sprintf("%s/projects/%d/gitConfigs", env.ApiURL, project.Id), nil, &projectGitConfigs)
 
 		if err != nil {
 			return nil, err

@@ -6,18 +6,19 @@ import (
 	"io"
 
 	"github.com/spf13/viper"
+	"tapeless.app/tapeless-cli/env"
 	"tapeless.app/tapeless-cli/util"
 )
 
 func CreateProject(request ProjectsCreateRequest) (Project, error) {
 	var Project Project
-	err := util.MakeRequestAndParseResponse("POST", "http://localhost:4000/cli/projects", request, &Project)
+	err := util.MakeRequestAndParseResponse("POST", env.ApiURL+"/projects", request, &Project)
 
 	return Project, err
 }
 
 func getProjects() ([]Project, error) {
-	resp, err := util.MakeRequest("GET", "http://localhost:4000/cli/projects", nil)
+	resp, err := util.MakeRequest("GET", env.ApiURL+"/projects", nil)
 
 	if err != nil {
 		return nil, err
@@ -39,7 +40,7 @@ func getProjects() ([]Project, error) {
 }
 
 func DeleteProject(projectId int) error {
-	_, err := util.MakeRequest("DELETE", fmt.Sprintf("http://localhost:4000/cli/projects/%d", projectId), nil)
+	_, err := util.MakeRequest("DELETE", fmt.Sprintf("%s/projects/%d", env.ApiURL, projectId), nil)
 	return err
 }
 

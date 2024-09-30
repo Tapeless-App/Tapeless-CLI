@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"tapeless.app/tapeless-cli/env"
 	"tapeless.app/tapeless-cli/util"
 )
 
@@ -30,7 +31,7 @@ func waitForJWT() (string, error) {
 
 	// Start the server in a goroutine
 	go func() {
-		fmt.Println("Waiting for JWT callback on http://localhost:8080/callback")
+		fmt.Printf("Waiting for JWT callback on http://localhost:%s/callback\n", env.LoginCallbackPort)
 		http.ListenAndServe(":8080", nil)
 	}()
 
@@ -43,7 +44,7 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to Tapeless",
 	Run: func(cmd *cobra.Command, args []string) {
-		loginURL := "http://localhost:5173/cli/login"
+		loginURL := env.WebURL + "/cli/login"
 		fmt.Println("Opening browser to log in...")
 
 		// Open browser for user to log in

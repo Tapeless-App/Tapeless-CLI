@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"tapeless.app/tapeless-cli/env"
 	"tapeless.app/tapeless-cli/util"
 
 	"github.com/spf13/cobra"
@@ -20,10 +21,10 @@ var (
 		Short: "Open the Tapeless web app",
 		Run: func(cmd *cobra.Command, args []string) {
 
-			url := "http://localhost:5173/projects"
+			url := env.WebURL + "/projects"
 
 			if projectInputFlag != -1 {
-				url = fmt.Sprintf("http://localhost:5173/projects/%d", projectInputFlag)
+				url = fmt.Sprintf("%s/projects/%d", env.WebURL, projectInputFlag)
 			}
 
 			err := util.OpenBrowser(url)

@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/cmd"
+	"tapeless.app/tapeless-cli/env"
 	projectsService "tapeless.app/tapeless-cli/services/projects"
 	reposService "tapeless.app/tapeless-cli/services/repos"
 	syncService "tapeless.app/tapeless-cli/services/sync"
@@ -71,7 +72,7 @@ var (
 					return
 				}
 
-				uploadUrl := fmt.Sprintf("http://localhost:4000/cli/projects/%d/gitConfigs/%d/commits", repo.ProjectId, repo.GitConfigId)
+				uploadUrl := fmt.Sprintf("%s/projects/%d/gitConfigs/%d/commits", env.ApiURL, repo.ProjectId, repo.GitConfigId)
 
 				_, err = util.MakeRequest("POST", uploadUrl, bytes.NewBuffer(jsonOutput))
 
