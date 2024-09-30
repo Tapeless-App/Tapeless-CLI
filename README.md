@@ -4,8 +4,22 @@ The `Tapeless-CLI` is a complementary tool for the [Tapeless web application](ht
 
 # User Guide
 
-## Quickstart
+## Quick Start
 
+**Installation**
+
+The Tapeless CLI is best installed via Homebrew:
+
+```
+brew tap Tapeless-App/Tapeless-CLI
+brew install tapeless-cli
+```
+
+If you want to install the CLI from source, simply add the `--build-from-source` flag to your install. This requires `go` to be setup.
+
+**Usage**
+
+1. `tapeless version` verify installation and ensure you are using the latest version
 1. `tapeless login` will setup your session by logging into tapeless via the web UI
 1. `tapeless projects add` allows you to create a new projects
 1. `tapeless repos add` will add the working directory as a git repository to one of your projects
