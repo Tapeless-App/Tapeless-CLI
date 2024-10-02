@@ -17,7 +17,7 @@ builds:
       - windows
       - darwin
     ldflags:
-      - -X tapeless.app/tapeless-cli/env.Version=0.0.3
+      - -X tapeless.app/tapeless-cli/env.Version={{.Version}}
       - -X tapeless.app/tapeless-cli/env.ApiURL=https://api.tapeless.app/cli
       - -X tapeless.app/tapeless-cli/env.WebURL=https://tapeless.app
       - -X tapeless.app/tapeless-cli/env.LoginCallbackPort=8080
