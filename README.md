@@ -52,7 +52,7 @@ Simply run `go run main.go [COMMAND]` to execute the desired command.
 
 ### Local Build
 
-To create a local build, setup the version you wish to build. e.g. `TAPELESS_VERSION=1.0.0` and run the build command:
+To create a local build for testing purposes, setup the version you wish to build. e.g. `TAPELESS_VERSION=1.0.0` and run the build command:
 
 ```
   go build -o ./build/tapeless -ldflags "\
@@ -64,18 +64,6 @@ To create a local build, setup the version you wish to build. e.g. `TAPELESS_VER
 
 ### Release Build
 
-This project uses GoReleaser to create binaries for all systems and associate them with the latest release tag.
+This project uses [GoReleaser](https://goreleaser.com/) to create binaries for all systems and associate them with the latest release tag.
 
-First make sure all changes are committed and create a new release, e.g.
-
-```
-git tag -a v0.0.4 -m "Description for the release..."
-```
-
-Then, create your binaries and push the release via:
-
-```
-GITHUB_TOKEN=[YOUR_GITHUB_TOKEN] goreleaser release
-```
-
-Finally, update the formula in the [homebrew-tapeless-cli](https://github.com/Tapeless-App/homebrew-tapeless-cli) repository with the latest version and shas.
+GitHub Actions are used to automate the build, release, and formula update. Simply create a `release/[VERSION]` branch and the pipeline will take care of the rest.
