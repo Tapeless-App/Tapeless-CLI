@@ -37,6 +37,22 @@ archives:
       - goos: windows
         format: zip
 
+brews:
+  - name: tapeless
+    commit_author:
+      name: Tapeless
+      email: info@tapeless.app
+    homepage: https://tapeless.app
+    description: Tapeless CLI
+    license: proprietary
+    test: |
+      assert_match version.to_s, shell_output("#{bin}/tapeless version")
+    install: |
+      bin.install "tapeless"
+    repository:
+      owner: Tapeless-App
+      name: homebrew-tapeless-cli
+
 changelog:
   sort: asc
   filters:
