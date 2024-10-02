@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - "release/*"
+    tags-ignore:
+      - "*"
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch all history for all branches and tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Extract version from branch name
+        id: extract_version
+        run: |
+          BRANCH_NAME=${GITHUB_REF##*/}
+          VERSION=$BRANCH_NAME
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "::set-output name=version::$VERSION"
+
+      - name: Configure git
+        run: |
+          git config user.name "Tapeless-App"
+          git config user.email "info@tapeless.app"
+
+      - name: Create and push tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Fetch tags
+        run: git fetch --tags
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
