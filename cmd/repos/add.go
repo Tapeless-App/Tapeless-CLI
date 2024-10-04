@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/prompts"
@@ -39,8 +40,24 @@ var (
 					return
 				}
 
-				fmt.Println("No path provided, using working directory:", wd)
-				path = wd
+				pathPrompt := promptui.Prompt{
+					Label:     "Enter the path to the repository",
+					Default:   wd,
+					AllowEdit: true,
+					Validate: func(input string) error {
+						if _, err := os.Stat(input); os.IsNotExist(err) {
+							return fmt.Errorf("path '%s' does not exist", input)
+						}
+						return nil
+					},
+				}
+
+				path, err = pathPrompt.Run()
+
+				if err != nil {
+					fmt.Println("Path selection cancelled")
+					return
+				}
 			}
 
 			projects, err := projectService.FetchProjects()
