@@ -47,11 +47,19 @@ var (
 
 				hasRepos = true
 
+				project, err := projectsService.FilterProjectsById(repo.ProjectId, &projects)
+
 				fmt.Printf("====== Repository: %s ======\n", repo.Name)
 				fmt.Println("Path:", repo.Path)
 				fmt.Println("Latest Sync:", repo.LatestSync)
-				fmt.Println("Project ID:", repo.ProjectId)
 				fmt.Println("Git Config ID:", repo.GitConfigId)
+				if err != nil {
+					fmt.Println("Error fetching project with projectId", repo.ProjectId, err)
+				} else {
+					fmt.Println("Project Name:", project.Name)
+				}
+				fmt.Println("Project ID:", repo.ProjectId)
+
 				fmt.Println()
 			}
 
