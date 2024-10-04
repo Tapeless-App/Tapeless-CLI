@@ -53,7 +53,7 @@ var addProjectsCmd = &cobra.Command{
 		}
 
 		projectEndPrompt := promptui.Prompt{
-			Label: "Optional: When does the project END (format yyyy-mm-dd)?",
+			Label: "Optional: When does the project END (format yyyy-mm-dd)? Hit enter to skip.",
 			Validate: func(input string) error {
 				if input != "" {
 					_, err := time.Parse("2006-01-02", input)
