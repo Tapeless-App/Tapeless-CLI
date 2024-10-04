@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/env"
@@ -41,6 +42,9 @@ func FetchNewToken() (string, error) {
 
 	loginURL := env.WebURL + "/cli/login"
 	fmt.Println("Opening browser to log in...")
+	fmt.Println("If the browser does not open automatically, go to:", loginURL)
+
+	time.Sleep(1 * time.Second)
 
 	// Open browser for user to log in
 	err := util.OpenBrowser(loginURL)

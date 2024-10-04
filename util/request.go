@@ -35,12 +35,6 @@ func MakeAuthRequest(method, url string, body io.Reader) (*http.Response, error)
 }
 
 func MakeUnAuthRequest(method, url string, body io.Reader) (*http.Response, error) {
-	// Get the authorization token from viper
-	token := viper.GetString("token")
-	if token == "" {
-		return nil, fmt.Errorf("authorization token is missing")
-	}
-
 	// Create the request
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
@@ -94,7 +88,6 @@ func MakeUnAuthRequestAndParseResponse(method, url string, jsonBody interface{},
 	if jsonBody != nil {
 
 		jsonData, err := json.Marshal(jsonBody)
-
 		if err != nil {
 			return err
 		}
@@ -110,6 +103,7 @@ func MakeUnAuthRequestAndParseResponse(method, url string, jsonBody interface{},
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
+
 	if err != nil {
 		return err
 	}
