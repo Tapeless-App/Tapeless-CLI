@@ -49,6 +49,7 @@ func GetCommitListForRepo(repo reposService.Repository, project projectsService.
 
 		// Find the branches that contain this commit
 		branchesCmd := exec.Command("git", "branch", "--contains", commitHash)
+		branchesCmd.Dir = repo.Path
 		var branchesOut bytes.Buffer
 		branchesCmd.Stdout = &branchesOut
 		err = branchesCmd.Run()

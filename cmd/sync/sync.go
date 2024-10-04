@@ -91,14 +91,14 @@ var (
 
 				if err != nil {
 					fmt.Println("Error finding project for repository:", repo.Name, err)
-					return
+					continue
 				}
 
 				commits, err := syncService.GetCommitListForRepo(*repo, activeProject)
 
 				if err != nil {
 					fmt.Println("Error getting commit list for repository:", repo.Name, err)
-					return
+					continue
 				}
 
 				if len(commits) == 0 {
@@ -112,7 +112,7 @@ var (
 				jsonOutput, err := json.Marshal(commits)
 				if err != nil {
 					fmt.Println("Error marshaling JSON:", err)
-					return
+					continue
 				}
 
 				uploadUrl := fmt.Sprintf("%s/projects/%d/gitConfigs/%d/commits", env.ApiURL, repo.ProjectId, repo.GitConfigId)
@@ -121,14 +121,16 @@ var (
 
 				if err != nil {
 					fmt.Println("Error uploading commits:", err)
-					return
+					continue
 				}
 
-				fmt.Println("Commits uploaded successfully for repo,", repo.Name, "- updating latest sync time")
+				fmt.Println("Commits uploaded successfully for repository:", repo.Name)
 
 				repo.LatestSync = time.Now().Format("2006-01-02T15:04:05")
 
 			}
+
+			fmt.Println("All repositories synced successfully")
 
 			viper.Set("repositories", repositories)
 			viper.WriteConfig()
