@@ -110,16 +110,5 @@ var addProjectsCmd = &cobra.Command{
 
 		fmt.Printf("Project '%s' (id: '%d') created successfully!\n", Project.Name, Project.Id)
 
-		fmt.Println("Syncing projects...")
-
-		_, err = projectsService.FetchProjects()
-
-		if err != nil {
-			fmt.Println("Error syncing projects:", err)
-			return
-		}
-
-		fmt.Println("Projects synced successfully!")
-
 	},
 }
