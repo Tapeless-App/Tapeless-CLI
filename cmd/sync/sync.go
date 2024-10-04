@@ -56,7 +56,7 @@ var (
 					continue
 				}
 
-				endDate, err := time.Parse("2006-01-02", project.ProjectEnd)
+				endDate, err := time.Parse("2006-01-02T15:04:05.000Z", project.ProjectEnd)
 
 				if err != nil {
 					fmt.Printf("Error parsing project end date for project %s: %s\n", project.Name, err.Error())

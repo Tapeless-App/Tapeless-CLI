@@ -89,7 +89,7 @@ var addProjectsCmd = &cobra.Command{
 			return
 		}
 
-		err = util.VerifyStartBeforeEnd(projectStart, projectEnd, "2006-01-02")
+		err = util.VerifyStartBeforeEnd(projectStart, projectEnd, "2006-01-02T15:04:05.000Z")
 
 		if err != nil {
 			fmt.Println("Error:", err)
