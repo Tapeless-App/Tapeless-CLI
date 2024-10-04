@@ -112,7 +112,7 @@ var addProjectsCmd = &cobra.Command{
 
 		fmt.Println("Syncing projects...")
 
-		_, err = projectsService.SyncProjects()
+		_, err = projectsService.FetchProjects()
 
 		if err != nil {
 			fmt.Println("Error syncing projects:", err)

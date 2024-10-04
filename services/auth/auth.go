@@ -1,18 +1,65 @@
-package cmd
+package auth
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/env"
 	versionService "tapeless.app/tapeless-cli/services/version"
 	"tapeless.app/tapeless-cli/util"
 )
 
-func init() {
-	RootCmd.AddCommand(loginCmd)
+func EnsureValidSession() (string, error) {
+
+	token := viper.GetString("token")
+
+	if token == "" {
+		fmt.Println("No token found. Please log in.")
+		return FetchNewToken()
+	}
+
+	isExpired, err := util.IsJWTExpired(token)
+
+	if err != nil {
+		fmt.Println("Error verifying access token:", err)
+		return FetchNewToken()
+	}
+
+	if isExpired {
+		fmt.Println("JWT token expired.")
+		return FetchNewToken()
+	}
+
+	return token, nil
+
+}
+
+func FetchNewToken() (string, error) {
+
+	versionService.CheckLatestVersion()
+
+	loginURL := env.WebURL + "/cli/login"
+	fmt.Println("Opening browser to log in...")
+
+	// Open browser for user to log in
+	err := util.OpenBrowser(loginURL)
+	if err != nil {
+		return "", err
+	}
+
+	// Optional: Wait for JWT (via a callback server or polling mechanism)
+	jwt, err := waitForJWT()
+	if err != nil {
+		return "", err
+	}
+
+	// Store the JWT in your config
+	viper.Set("token", jwt)
+	viper.WriteConfig()
+
+	return jwt, nil
+
 }
 
 // waitForJWT starts a local server and waits for the JWT to be sent back from the web login.
@@ -39,35 +86,4 @@ func waitForJWT() (string, error) {
 	// Wait for the JWT to be received
 	jwt := <-jwtChan
 	return jwt, nil
-}
-
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Login to Tapeless",
-	Run: func(cmd *cobra.Command, args []string) {
-
-		versionService.CheckLatestVersion()
-
-		loginURL := env.WebURL + "/cli/login"
-		fmt.Println("Opening browser to log in...")
-
-		// Open browser for user to log in
-		err := util.OpenBrowser(loginURL)
-		if err != nil {
-			fmt.Println("Error opening browser:", err)
-			return
-		}
-
-		// Optional: Wait for JWT (via a callback server or polling mechanism)
-		jwt, err := waitForJWT()
-		if err != nil {
-			fmt.Println("Error fetching JWT:", err)
-			return
-		}
-
-		// Store the JWT in your config
-		viper.Set("token", jwt)
-		viper.WriteConfig()
-		fmt.Println("Login successful:", jwt)
-	},
 }

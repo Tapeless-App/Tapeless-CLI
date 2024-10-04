@@ -10,31 +10,68 @@ import (
 	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/cmd"
 	"tapeless.app/tapeless-cli/env"
+	authService "tapeless.app/tapeless-cli/services/auth"
 	projectsService "tapeless.app/tapeless-cli/services/projects"
 	reposService "tapeless.app/tapeless-cli/services/repos"
 	syncService "tapeless.app/tapeless-cli/services/sync"
+	versionService "tapeless.app/tapeless-cli/services/version"
 	"tapeless.app/tapeless-cli/util"
 )
 
 func init() {
 	cmd.RootCmd.AddCommand(syncCmd)
+	syncCmd.Flags().BoolVarP(&includeInactiveFlag, "include-completed", "i", false, "Sync repositories all projects, even if they have been completed for more than 30 days")
 }
 
 var (
-	syncCmd = &cobra.Command{
+	includeInactiveFlag bool
+	syncCmd             = &cobra.Command{
 		Use:   "sync",
-		Short: "Sync the commits from your repositories with Tapeless",
+		Short: "Sync the commits from your repositories with Tapeless, will sync all running projects or that have ended within the last 30 days",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			authService.EnsureValidSession()
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 
-			projects, err := projectsService.SyncProjects()
+			versionService.CheckLatestVersion()
+
+			projects, err := projectsService.FetchProjects()
 
 			if err != nil {
 				fmt.Println("Error reading projects:", err)
 				return
 			}
 
+			if len(projects) == 0 {
+				fmt.Println("No projects found - add a project first using \"tapeless projects add\"")
+				return
+			}
+
+			activeProjects := make([]projectsService.Project, 0)
+
+			for _, project := range projects {
+
+				if project.ProjectEnd == "" {
+					activeProjects = append(activeProjects, project)
+					continue
+				}
+
+				endDate, err := time.Parse("2006-01-02", project.ProjectEnd)
+
+				if err != nil {
+					fmt.Printf("Error parsing project end date for project %s: %s\n", project.Name, err.Error())
+					fmt.Println("Skipping project")
+					continue
+				}
+
+				if includeInactiveFlag || endDate.After(time.Now().AddDate(0, 0, -30)) {
+					activeProjects = append(activeProjects, project)
+				}
+
+			}
+
 			// Ensure that remote gitConfigs and local repositories are in sync
-			repositories, err := reposService.SyncRepositories(projects)
+			repositories, err := reposService.FetchAndUpdateRepositories(activeProjects)
 
 			if err != nil {
 				fmt.Println("Error reading repositories:", err)
@@ -49,9 +86,15 @@ var (
 			for repoIndex := range repositories {
 
 				repo := &repositories[repoIndex]
-				project := projects[repo.ProjectId]
 
-				commits, err := syncService.GetCommitListForRepo(*repo, project)
+				activeProject, err := projectsService.FilterProjectsById(repo.ProjectId, &activeProjects)
+
+				if err != nil {
+					fmt.Println("Error finding project for repository:", repo.Name, err)
+					return
+				}
+
+				commits, err := syncService.GetCommitListForRepo(*repo, activeProject)
 
 				if err != nil {
 					fmt.Println("Error getting commit list for repository:", repo.Name, err)
@@ -74,7 +117,7 @@ var (
 
 				uploadUrl := fmt.Sprintf("%s/projects/%d/gitConfigs/%d/commits", env.ApiURL, repo.ProjectId, repo.GitConfigId)
 
-				_, err = util.MakeRequest("POST", uploadUrl, bytes.NewBuffer(jsonOutput))
+				_, err = util.MakeAuthRequest("POST", uploadUrl, bytes.NewBuffer(jsonOutput))
 
 				if err != nil {
 					fmt.Println("Error uploading commits:", err)

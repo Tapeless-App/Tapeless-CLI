@@ -21,7 +21,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 
 			// Get a list of current projects
-			projects, err := projectsService.SyncProjects()
+			projects, err := projectsService.FetchProjects()
 
 			if err != nil {
 				fmt.Println("Error:", err)
@@ -29,7 +29,7 @@ var (
 			}
 
 			// Sync repositories first
-			reposData, err := reposService.SyncRepositories(projects)
+			reposData, err := reposService.FetchAndUpdateRepositories(projects)
 
 			if err != nil {
 				fmt.Println("Error:", err)

@@ -5,20 +5,24 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/env"
 	"tapeless.app/tapeless-cli/util"
 )
 
 func CreateProject(request ProjectsCreateRequest) (Project, error) {
 	var Project Project
-	err := util.MakeRequestAndParseResponse("POST", env.ApiURL+"/projects", request, &Project)
+	err := util.MakeAuthRequestAndParseResponse("POST", env.ApiURL+"/projects", request, &Project)
 
 	return Project, err
 }
 
-func getProjects() ([]Project, error) {
-	resp, err := util.MakeRequest("GET", env.ApiURL+"/projects", nil)
+func DeleteProject(projectId int) error {
+	_, err := util.MakeAuthRequest("DELETE", fmt.Sprintf("%s/projects/%d", env.ApiURL, projectId), nil)
+	return err
+}
+
+func FetchProjects() ([]Project, error) {
+	resp, err := util.MakeAuthRequest("GET", env.ApiURL+"/projects", nil)
 
 	if err != nil {
 		return nil, err
@@ -39,34 +43,7 @@ func getProjects() ([]Project, error) {
 	return projects, err
 }
 
-func DeleteProject(projectId int) error {
-	_, err := util.MakeRequest("DELETE", fmt.Sprintf("%s/projects/%d", env.ApiURL, projectId), nil)
-	return err
-}
-
-func persistProjects(projects []Project) ([]Project, error) {
-	viper.Set("projects", projects)
-	err := viper.WriteConfig()
-	return projects, err
-}
-
-func SyncProjects() ([]Project, error) {
-	projects, err := getProjects()
-
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = persistProjects(projects)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return projects, nil
-}
-
-func FindProjectById(projectId int, projects *[]Project) (Project, error) {
+func FilterProjectsById(projectId int, projects *[]Project) (Project, error) {
 	if projects == nil {
 		return Project{}, fmt.Errorf("projects is nil")
 	}

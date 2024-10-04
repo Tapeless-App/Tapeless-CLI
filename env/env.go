@@ -1,8 +1,9 @@
 package env
 
 var (
-	ApiURL            = "http://localhost:4000/cli"
+	ApiURL            = "http://localhost:4000/cli/v1"
 	WebURL            = "http://localhost:5173"
-	LoginCallbackPort = "8080"
-	Version           = "Development"
+	LoginCallbackPort = "8123"
+	// Version           = "Development"
+	Version = "v0.0.5"
 )

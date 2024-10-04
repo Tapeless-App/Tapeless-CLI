@@ -21,7 +21,7 @@ var removeProjectCmd = &cobra.Command{
 	Aliases: []string{"rm", "delete"},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		projects, err := projectService.SyncProjects()
+		projects, err := projectService.FetchProjects()
 
 		if err != nil {
 			fmt.Println("Error:", err)

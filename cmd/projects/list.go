@@ -18,10 +18,10 @@ var listPorjectsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Sync projects first
-		projectsData, err := projectsService.SyncProjects()
+		projectsData, err := projectsService.FetchProjects()
 
 		if err != nil {
-			fmt.Println("Error:", err)
+			fmt.Println("Error fetching projects:", err)
 			return
 		}
 

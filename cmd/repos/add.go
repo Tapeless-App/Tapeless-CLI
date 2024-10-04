@@ -43,7 +43,7 @@ var (
 				path = wd
 			}
 
-			projects, err := projectService.SyncProjects()
+			projects, err := projectService.FetchProjects()
 
 			if err != nil {
 				fmt.Println("Error:", err)
@@ -68,7 +68,7 @@ var (
 				return
 			}
 
-			project, err := projectService.FindProjectById(projectId, &projects)
+			project, err := projectService.FilterProjectsById(projectId, &projects)
 
 			if err != nil {
 				fmt.Println("Error:", err)

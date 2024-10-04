@@ -47,7 +47,7 @@ var statusCmd = &cobra.Command{
 
 		fmt.Println("=== Project Setup ===")
 
-		projects, err := projectsService.SyncProjects()
+		projects, err := projectsService.FetchProjects()
 
 		if err != nil {
 			fmt.Println("Error reading projects:", err)
@@ -64,7 +64,7 @@ var statusCmd = &cobra.Command{
 
 		fmt.Println("=== Repository Setup ===")
 
-		repos, err := reposService.SyncRepositories(projects)
+		repos, err := reposService.FetchAndUpdateRepositories(projects)
 
 		if err != nil {
 			fmt.Println("Error reading repositories:", err)

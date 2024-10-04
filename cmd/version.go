@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"tapeless.app/tapeless-cli/env"
+	versionService "tapeless.app/tapeless-cli/services/version"
 )
 
 func init() {
@@ -16,5 +17,6 @@ var versionCmd = &cobra.Command{
 	Short: "Print the current Tapeless CLI version",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(env.Version)
+		versionService.CheckLatestVersion()
 	},
 }

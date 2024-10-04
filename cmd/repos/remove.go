@@ -84,7 +84,7 @@ var (
 					entryToRemove = matchingEntries[0]
 				} else {
 					fmt.Println("Multiple repositories found with path:", path)
-					projects, err := projectsService.SyncProjects()
+					projects, err := projectsService.FetchProjects()
 
 					if err != nil {
 						fmt.Println("Error reading projects:", err)
@@ -94,7 +94,7 @@ var (
 					matchingProjects := make([]projectsService.Project, 0)
 
 					for _, entry := range matchingEntries {
-						project, err := projectsService.FindProjectById(entry.ProjectId, &projects)
+						project, err := projectsService.FilterProjectsById(entry.ProjectId, &projects)
 
 						if err != nil {
 							continue

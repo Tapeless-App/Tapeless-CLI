@@ -37,13 +37,13 @@ func CreateGitConfig(projectId int, localRepo LocalRepositoryConfig) (GitConfigR
 
 	gitConfigResponse := GitConfigResponse{}
 
-	err := util.MakeRequestAndParseResponse("POST", fmt.Sprintf("%s/projects/%d/gitConfigs", env.ApiURL, projectId), gitConfigRequest, &gitConfigResponse)
+	err := util.MakeAuthRequestAndParseResponse("POST", fmt.Sprintf("%s/projects/%d/gitConfigs", env.ApiURL, projectId), gitConfigRequest, &gitConfigResponse)
 
 	return gitConfigResponse, err
 }
 
 func DeleteGitConfig(projectId int, gitConfigId int) error {
-	_, err := util.MakeRequest("DELETE", fmt.Sprintf("%s/projects/%d/gitConfigs/%d", env.ApiURL, projectId, gitConfigId), nil)
+	_, err := util.MakeAuthRequest("DELETE", fmt.Sprintf("%s/projects/%d/gitConfigs/%d", env.ApiURL, projectId, gitConfigId), nil)
 	return err
 }
 
@@ -123,12 +123,12 @@ func persistRepositories(repos []Repository) error {
 // This is update and remove only - adding only happens in the CLI
 // This avoids potential conflicts with the CLI and the API and different instances of the CLI
 // on different machines that have different file systems
-func SyncRepositories(projects []projectsService.Project) ([]Repository, error) {
+func FetchAndUpdateRepositories(projects []projectsService.Project) ([]Repository, error) {
 	gitConfigs := make([]GitConfigResponse, 0)
 
 	for _, project := range projects {
 		projectGitConfigs := make([]GitConfigResponse, 0)
-		err := util.MakeRequestAndParseResponse("GET", fmt.Sprintf("%s/projects/%d/gitConfigs", env.ApiURL, project.Id), nil, &projectGitConfigs)
+		err := util.MakeAuthRequestAndParseResponse("GET", fmt.Sprintf("%s/projects/%d/gitConfigs", env.ApiURL, project.Id), nil, &projectGitConfigs)
 
 		if err != nil {
 			return nil, err
