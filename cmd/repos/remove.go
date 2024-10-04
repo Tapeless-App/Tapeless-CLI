@@ -2,9 +2,8 @@ package repos
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"tapeless.app/tapeless-cli/prompts"
 	projectsService "tapeless.app/tapeless-cli/services/projects"
@@ -24,119 +23,53 @@ var (
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 
-			path := ""
-
-			if len(args) > 0 {
-
-				absPath, err := filepath.Abs(args[0])
-
-				if err != nil {
-					fmt.Println("Error getting absolute path to specific path:", err)
-					return
-				}
-
-				path = absPath
-
-			} else {
-
-				wd, err := os.Getwd()
-
-				if err != nil {
-					fmt.Println("No path provided, error getting working directory:", err)
-					return
-				}
-
-				fmt.Println("No path provided, using working directory:", wd)
-				path = wd
-			}
-
-			repositories, err := reposService.GetPersistedRepositories()
+			projects, err := projectsService.FetchProjects()
 
 			if err != nil {
-				fmt.Println("Error:", err)
+				fmt.Println("Error fetching projects:", err)
 				return
 			}
 
-			matchingEntries := make([]reposService.Repository, 0)
-			entryToRemove := reposService.Repository{}
-
-			for _, repo := range repositories {
-				if repo.Path == path {
-					// If a projectId flag is provided, only consider repositories with that project ID
-					if projectIdFlag != -1 && repo.ProjectId != projectIdFlag {
-						continue
-					}
-					matchingEntries = append(matchingEntries, repo)
-				}
-			}
-
-			if len(matchingEntries) == 0 {
-				fmt.Println("No repositories found with path:", path)
-				return
-			}
-
-			if len(matchingEntries) == 1 {
-				entryToRemove = matchingEntries[0]
-			} else {
-				if projectIdFlag != -1 {
-					fmt.Println("Multiple repositories found with path:", path, "and project ID:", projectIdFlag)
-					fmt.Println("This is an unexpected state - deleting the first one found")
-					entryToRemove = matchingEntries[0]
-				} else {
-					fmt.Println("Multiple repositories found with path:", path)
-					projects, err := projectsService.FetchProjects()
-
-					if err != nil {
-						fmt.Println("Error reading projects:", err)
-						return
-					}
-
-					matchingProjects := make([]projectsService.Project, 0)
-
-					for _, entry := range matchingEntries {
-						project, err := projectsService.FilterProjectsById(entry.ProjectId, &projects)
-
-						if err != nil {
-							continue
-						}
-
-						matchingProjects = append(matchingProjects, project)
-					}
-
-					projectId, err := prompts.GetProjectIdPrompt("Select the project to remove the repository from", projectIdFlag, matchingProjects)
-
-					if err != nil {
-						fmt.Println("Project selection cancelled")
-						return
-					}
-
-					for _, entry := range matchingEntries {
-						if entry.ProjectId == projectId {
-							entryToRemove = entry
-							break
-						}
-					}
-				}
-			}
-
-			if entryToRemove == (reposService.Repository{}) {
-				fmt.Println("No repository found to remove")
-				return
-			} else {
-				fmt.Println("Removing repository:", entryToRemove.Name)
-				err = reposService.DeleteGitConfig(entryToRemove.ProjectId, entryToRemove.GitConfigId)
-			}
+			repositories, err := reposService.FetchAndUpdateRepositories(projects)
 
 			if err != nil {
-				fmt.Println("Error removing repository from project:", err)
+				fmt.Println("Error fetching repositories:", err)
 				return
 			}
+
+			if len(repositories) == 0 {
+				fmt.Println("No repositories found")
+				return
+			}
+
+			// Get the repository to remove
+			repoToRemove, err := prompts.GetRepositoryPrompt("Select the repository to remove", repositories, projects)
+
+			if err != nil {
+				fmt.Println("Repository removal cancelled", err)
+				return
+			}
+
+			confirmationPrompt := promptui.Prompt{
+				Label:     fmt.Sprintf("Are you sure you want to remove the repository '%s'?", repoToRemove.Name),
+				IsConfirm: true,
+				Default:   "n",
+			}
+
+			_, err = confirmationPrompt.Run()
+
+			if err != nil {
+				fmt.Println("Repository removal cancelled")
+				return
+			}
+
+			reposService.DeleteRepository(*repoToRemove)
 
 			fmt.Println("Repository removed from project successfully - updating local configuration")
 
 			// Remove the repository from the local configuration
 			for i, repo := range repositories {
-				if repo.GitConfigId == entryToRemove.GitConfigId {
+				if repo.GitConfigId == repoToRemove.GitConfigId {
 					// Overwrite the repositories slice with the entry removed
 					repositories = append(repositories[:i], repositories[i+1:]...)
 					break

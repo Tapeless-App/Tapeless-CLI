@@ -47,7 +47,7 @@ var removeProjectCmd = &cobra.Command{
 		project := &projects[projectIndex]
 
 		confirmationPrompt := promptui.Prompt{
-			Label:     fmt.Sprintf("Are you sure you want to remove project '%s' with ID %d?", project.Name, projectId),
+			Label:     fmt.Sprintf("Are you sure you want to remove project '%s'?", project.Name),
 			IsConfirm: true,
 		}
 

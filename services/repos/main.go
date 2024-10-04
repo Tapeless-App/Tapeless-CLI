@@ -42,8 +42,8 @@ func CreateGitConfig(projectId int, localRepo LocalRepositoryConfig) (GitConfigR
 	return gitConfigResponse, err
 }
 
-func DeleteGitConfig(projectId int, gitConfigId int) error {
-	_, err := util.MakeAuthRequest("DELETE", fmt.Sprintf("%s/projects/%d/gitConfigs/%d", env.ApiURL, projectId, gitConfigId), nil)
+func DeleteRepository(repository Repository) error {
+	_, err := util.MakeAuthRequest("DELETE", fmt.Sprintf("%s/projects/%d/gitConfigs/%d", env.ApiURL, repository.ProjectId, repository.GitConfigId), nil)
 	return err
 }
 
