@@ -31,7 +31,25 @@ func MakeAuthRequest(method, url string, body io.Reader) (*http.Response, error)
 	client := &http.Client{}
 
 	// Make the request
-	return client.Do(req)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
+		return resp, nil
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("unauthorized request")
+	}
+
+	if resp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("forbidden request")
+	}
+
+	return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 }
 
 func MakeUnAuthRequest(method, url string, body io.Reader) (*http.Response, error) {
@@ -48,7 +66,26 @@ func MakeUnAuthRequest(method, url string, body io.Reader) (*http.Response, erro
 	client := &http.Client{}
 
 	// Make the request
-	return client.Do(req)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
+		return resp, nil
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("unauthorized request")
+	}
+
+	if resp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("forbidden request")
+	}
+
+	return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+
 }
 
 func MakeAuthRequestAndParseResponse(method, url string, jsonBody interface{}, response interface{}) error {

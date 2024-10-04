@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"tapeless.app/tapeless-cli/cmd"
@@ -108,20 +109,51 @@ var (
 					fmt.Println("Found", len(commits), "new commits for repository:", repo.Name)
 				}
 
-				// Convert the list of commits to JSON
-				jsonOutput, err := json.Marshal(commits)
-				if err != nil {
-					fmt.Println("Error marshaling JSON:", err)
-					continue
+				// If repo.LastSync is empty, ask the user before proceeding using promptui
+				if repo.LatestSync == "" {
+					prompt := promptui.Prompt{
+						Label:     fmt.Sprintf("Repository %s has never been synced before. Do you want to proceed with syncing these commits?", repo.Name),
+						Default:   "Y",
+						IsConfirm: true,
+					}
+
+					_, err := prompt.Run()
+
+					if err != nil {
+						fmt.Println("Skipping repository:", repo.Name)
+						continue
+					}
 				}
 
-				uploadUrl := fmt.Sprintf("%s/projects/%d/gitConfigs/%d/commits", env.ApiURL, repo.ProjectId, repo.GitConfigId)
+				batches := splitCommitsIntoBatches(commits, 250)
 
-				_, err = util.MakeAuthRequest("POST", uploadUrl, bytes.NewBuffer(jsonOutput))
+				batchCount := len(batches)
 
-				if err != nil {
-					fmt.Println("Error uploading commits:", err)
-					continue
+				if batchCount > 1 {
+					fmt.Println("Commit list split into", batchCount, "batches for repository:", repo.Name)
+				}
+
+				for i, batch := range batches {
+					// Convert the batch of commits to JSON
+					jsonOutput, err := json.Marshal(batch)
+					if err != nil {
+						fmt.Println("Error marshaling JSON for batch", i+1, ":", err)
+						continue
+					}
+
+					uploadUrl := fmt.Sprintf("%s/projects/%d/gitConfigs/%d/commits", env.ApiURL, repo.ProjectId, repo.GitConfigId)
+
+					_, err = util.MakeAuthRequest("POST", uploadUrl, bytes.NewBuffer(jsonOutput))
+
+					if err != nil {
+						fmt.Println("Error uploading batch", i+1, "of commits:", err)
+						continue
+					}
+
+					if batchCount > 1 {
+						fmt.Println("Batch", i+1, "of commits uploaded successfully for repository:", repo.Name)
+					}
+
 				}
 
 				fmt.Println("Commits uploaded successfully for repository:", repo.Name)
@@ -138,3 +170,16 @@ var (
 		},
 	}
 )
+
+// Function to split commits into batches
+func splitCommitsIntoBatches(commits []syncService.Commit, batchSize int) [][]syncService.Commit {
+	var batches [][]syncService.Commit
+	for batchSize < len(commits) {
+		batches = append(batches, commits[:batchSize])
+		commits = commits[batchSize:]
+	}
+	if len(commits) > 0 {
+		batches = append(batches, commits)
+	}
+	return batches
+}
