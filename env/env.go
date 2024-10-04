@@ -1,8 +1,8 @@
 package env
 
 var (
-	ApiURL            = "https://api.tapeless.app/cli/v1"
-	WebURL            = "https://tapeless.app"
+	ApiURL            = "http://localhost:4000/cli/v1"
+	WebURL            = "http://localhost:5173"
 	LoginCallbackPort = "8123"
 	Version           = "Development"
 )
