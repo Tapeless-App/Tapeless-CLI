@@ -25,6 +25,11 @@ type TimeEntry struct {
 	Description string  `json:"description"`
 }
 
+type GenerateRequest struct {
+	Date  string  `json:"date"`
+	Hours float64 `json:"hours"`
+}
+
 type TimeEntryFetchResponse = []TimeEntry
 
 func CreateTimeEntry(projectId int, request TimeEntryCreateRequest) (TimeEntryCreateResponse, error) {
@@ -44,6 +49,19 @@ func FetchTimeEntries(projectId int, date string) (TimeEntryFetchResponse, error
 
 	err := util.MakeAuthRequestAndParseResponse("GET", fmt.Sprintf("%s/projects/%d/time?date=%s", env.ApiURL, projectId, date),
 		nil, &timeEntriesResponse)
+
+	return timeEntriesResponse, err
+}
+
+func GenerateTimeEntries(projectId int, date string, hours float64) (TimeEntryFetchResponse, error) {
+
+	timeEntriesResponse := TimeEntryFetchResponse{}
+
+	err := util.MakeAuthRequestAndParseResponse("POST", fmt.Sprintf("%s/projects/%d/time/actions/generate", env.ApiURL, projectId),
+		GenerateRequest{
+			Date:  date,
+			Hours: hours,
+		}, &timeEntriesResponse)
 
 	return timeEntriesResponse, err
 

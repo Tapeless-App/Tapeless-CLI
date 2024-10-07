@@ -6,17 +6,18 @@ import (
 	"os/exec"
 	"strings"
 
+	"tapeless.app/tapeless-cli/env"
 	projectsService "tapeless.app/tapeless-cli/services/projects"
 	reposService "tapeless.app/tapeless-cli/services/repos"
 	"tapeless.app/tapeless-cli/util"
 )
 
-func GetCommitListForRepo(repo reposService.Repository, project projectsService.Project) ([]Commit, error) {
+func GetLocalCommitListForRepo(repo reposService.Repository, project projectsService.Project) ([]LocalCommit, error) {
 
 	authorFlag := fmt.Sprintf("--author=%s", repo.AuthorEmail)
 	sinceFlag := fmt.Sprintf("--since=%s", repo.LatestSync)
 
-	var commitList []Commit
+	var commitList []LocalCommit
 
 	if repo.LatestSync == "" {
 		sinceFlag = fmt.Sprintf("--since=%s", util.DateTimeToDateStr(project.ProjectStart))
@@ -64,7 +65,7 @@ func GetCommitListForRepo(repo reposService.Repository, project projectsService.
 		}
 
 		// Create a commit entry
-		commit := Commit{
+		commit := LocalCommit{
 			CommitHash: commitHash,
 			Date:       date,
 			Message:    message,
@@ -74,4 +75,10 @@ func GetCommitListForRepo(repo reposService.Repository, project projectsService.
 	}
 
 	return commitList, nil
+}
+
+func FetchCommitsForProjectAndDate(projectId int, date string) ([]Commit, error) {
+	var commits []Commit
+	err := util.MakeAuthRequestAndParseResponse("GET", fmt.Sprintf("%s/projects/%d/commits?date=%s", env.ApiURL, projectId, date), nil, &commits)
+	return commits, err
 }

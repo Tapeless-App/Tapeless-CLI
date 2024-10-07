@@ -20,13 +20,13 @@ import (
 )
 
 func init() {
-	cmd.RootCmd.AddCommand(syncCmd)
-	syncCmd.Flags().BoolVarP(&includeInactiveFlag, "include-completed", "i", false, "Sync repositories all projects, even if they have been completed for more than 30 days")
+	cmd.RootCmd.AddCommand(SyncCmd)
+	SyncCmd.Flags().BoolVarP(&includeInactiveFlag, "include-completed", "i", false, "Sync repositories all projects, even if they have been completed for more than 30 days")
 }
 
 var (
 	includeInactiveFlag bool
-	syncCmd             = &cobra.Command{
+	SyncCmd             = &cobra.Command{
 		Use:   "sync",
 		Short: "Sync the commits from your repositories with Tapeless, will sync all running projects or that have ended within the last 30 days",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -95,7 +95,7 @@ var (
 					continue
 				}
 
-				commits, err := syncService.GetCommitListForRepo(*repo, activeProject)
+				commits, err := syncService.GetLocalCommitListForRepo(*repo, activeProject)
 
 				if err != nil {
 					fmt.Println("Error getting commit list for repository:", repo.Name, err)
@@ -172,8 +172,8 @@ var (
 )
 
 // Function to split commits into batches
-func splitCommitsIntoBatches(commits []syncService.Commit, batchSize int) [][]syncService.Commit {
-	var batches [][]syncService.Commit
+func splitCommitsIntoBatches(commits []syncService.LocalCommit, batchSize int) [][]syncService.LocalCommit {
+	var batches [][]syncService.LocalCommit
 	for batchSize < len(commits) {
 		batches = append(batches, commits[:batchSize])
 		commits = commits[batchSize:]

@@ -24,7 +24,7 @@ var (
 				return
 			}
 
-			date, err := GetDate(fmt.Sprintf("For which date would you like to add time entries to '%s'?", project.Name), dateFlag)
+			date, err := GetDate(fmt.Sprintf("For which date would you like to add time entries for '%s'?", project.Name), dateFlag)
 
 			if err != nil {
 				fmt.Println("Aborted time entry creation", err)
