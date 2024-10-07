@@ -1,6 +1,8 @@
 package prompts
 
 import (
+	"fmt"
+	"slices"
 	"sort"
 
 	"github.com/manifoldco/promptui"
@@ -19,7 +21,8 @@ type RepoSelect struct {
 
 func GetRepositoryPrompt(label string, repositories []reposService.Repository, projects []projectService.Project) (*reposService.Repository, error) {
 
-	items := make([]RepoSelect, 0)
+	activeItems := make([]RepoSelect, 0)
+	completedItems := make([]RepoSelect, 0)
 
 	for _, repository := range repositories {
 		project, err := projectService.FilterProjectsById(repository.ProjectId, &projects)
@@ -28,19 +31,37 @@ func GetRepositoryPrompt(label string, repositories []reposService.Repository, p
 			project.Name = "Unknown"
 		}
 
-		items = append(items, RepoSelect{
-			Id:          repository.GitConfigId,
-			Name:        repository.Name,
-			Path:        repository.Path,
-			ProjectName: project.Name,
-			ProjectId:   repository.ProjectId,
-		})
+		isCompleted, err := util.IsDateInPast("2006-01-02T15:04:05.000Z", project.ProjectEnd)
+
+		if err != nil || !isCompleted {
+			activeItems = append(activeItems, RepoSelect{
+				Id:          repository.GitConfigId,
+				Name:        repository.Name,
+				Path:        repository.Path,
+				ProjectName: project.Name,
+				ProjectId:   repository.ProjectId,
+			})
+		} else {
+			completedItems = append(completedItems, RepoSelect{
+				Id:          repository.GitConfigId,
+				Name:        repository.Name,
+				Path:        repository.Path,
+				ProjectName: fmt.Sprintf("%s [COMPLETED]", project.Name),
+				ProjectId:   repository.ProjectId,
+			})
+		}
+
 	}
 
-	// sort the items by project name
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].ProjectId < items[j].ProjectId
+	sort.Slice(activeItems, func(i, j int) bool {
+		return activeItems[i].ProjectId < activeItems[j].ProjectId
 	})
+
+	sort.Slice(completedItems, func(i, j int) bool {
+		return completedItems[i].ProjectId < completedItems[j].ProjectId
+	})
+
+	items := slices.Concat(activeItems, completedItems)
 
 	templates := &promptui.SelectTemplates{
 		Label:    `{{ . }}:`,
@@ -84,17 +105,32 @@ func GetProjectIdPrompt(label string, projectIdFlag int, projects []projectServi
 		return projectIdFlag, nil
 	}
 
-	items := []projectService.Project{}
+	activeItems := make([]projectService.Project, 0)
+
+	completedItems := make([]projectService.Project, 0)
 
 	for _, project := range projects {
 
-		items = append(items, projectService.Project{
-			Id:           project.Id,
-			Name:         project.Name,
-			LastSync:     util.DateTimeToDateStr(project.LastSync),
-			ProjectStart: util.DateTimeToDateStr(project.ProjectStart),
-			ProjectEnd:   util.DateTimeToDateStr(project.ProjectEnd),
-		})
+		isCompleted, err := util.IsDateInPast("2006-01-02T15:04:05.000Z", project.ProjectEnd)
+
+		if err != nil || !isCompleted {
+			activeItems = append(activeItems, projectService.Project{
+				Id:           project.Id,
+				Name:         project.Name,
+				LastSync:     util.DateTimeToDateStr(project.LastSync),
+				ProjectStart: util.DateTimeToDateStr(project.ProjectStart),
+				ProjectEnd:   util.DateTimeToDateStr(project.ProjectEnd),
+			})
+		} else {
+			completedItems = append(completedItems, projectService.Project{
+				Id:           project.Id,
+				Name:         fmt.Sprintf("%s [COMPLETED]", project.Name),
+				LastSync:     util.DateTimeToDateStr(project.LastSync),
+				ProjectStart: util.DateTimeToDateStr(project.ProjectStart),
+				ProjectEnd:   util.DateTimeToDateStr(project.ProjectEnd),
+			})
+		}
+
 	}
 
 	templates := &promptui.SelectTemplates{
@@ -112,6 +148,8 @@ func GetProjectIdPrompt(label string, projectIdFlag int, projects []projectServi
  
 `,
 	}
+
+	items := slices.Concat(activeItems, completedItems)
 
 	prompt := promptui.Select{
 		Templates: templates,

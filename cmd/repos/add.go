@@ -20,9 +20,10 @@ func init() {
 
 var (
 	addCmd = &cobra.Command{
-		Use:   "add",
-		Short: "Add a new repository to be synced with Tapeless",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "add",
+		Short:   "Add a new repository to be synced with Tapeless",
+		Aliases: []string{"create", "new"},
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 
 			path := ""

@@ -10,6 +10,7 @@ import (
 	_ "tapeless.app/tapeless-cli/cmd/projects"
 	_ "tapeless.app/tapeless-cli/cmd/repos"
 	_ "tapeless.app/tapeless-cli/cmd/sync"
+	_ "tapeless.app/tapeless-cli/cmd/time"
 )
 
 func main() {

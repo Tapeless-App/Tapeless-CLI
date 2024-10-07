@@ -177,3 +177,21 @@ func FetchAndUpdateRepositories(projects []projectsService.Project) ([]Repositor
 
 	return repositories, nil
 }
+
+func GetRepositoryByDir(dir string, repos []Repository) (*Repository, error) {
+
+	absDir, err := filepath.Abs(dir)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for index, repo := range repos {
+		if repo.Path == absDir {
+			return &repos[index], nil
+		}
+	}
+
+	return nil, fmt.Errorf("no repo found with path %s", dir)
+
+}
