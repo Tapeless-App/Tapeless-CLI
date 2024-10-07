@@ -46,10 +46,10 @@ func GetProjectBasedOnWorkingDir(backupPromptLabel string, projectIdFlag int) (p
 	}
 
 	wd, err := os.Getwd()
-	var projectId int
+	var project projectsService.Project
 
 	if err != nil {
-		projectId, err = prompts.GetProjectIdPrompt(
+		project, err = prompts.GetProjectIdPrompt(
 			"Select a project to create a time entry for",
 			-1,
 			projects)
@@ -65,7 +65,7 @@ func GetProjectBasedOnWorkingDir(backupPromptLabel string, projectIdFlag int) (p
 		if err != nil {
 			fmt.Println("Error fetching repositories - select project manually")
 
-			projectId, err = prompts.GetProjectIdPrompt(
+			project, err = prompts.GetProjectIdPrompt(
 				"Select a project to create a time entry for",
 				-1,
 				projects)
@@ -79,7 +79,7 @@ func GetProjectBasedOnWorkingDir(backupPromptLabel string, projectIdFlag int) (p
 			if err != nil {
 				fmt.Println("No repository setup for current working directory - select project manually")
 
-				projectId, err = prompts.GetProjectIdPrompt(
+				project, err = prompts.GetProjectIdPrompt(
 					"Select a project to create a time entry for",
 					-1,
 					projects)
@@ -88,16 +88,14 @@ func GetProjectBasedOnWorkingDir(backupPromptLabel string, projectIdFlag int) (p
 					return projectsService.Project{}, err
 				}
 			} else {
-				projectId = repo.ProjectId
+				return prompts.GetProjectIdPromptWithDefault(
+					"Select a project to create a time entry for",
+					projectIdFlag,
+					projects,
+					repo.ProjectId)
 			}
 		}
 
-	}
-
-	project, err := projectsService.FilterProjectsById(projectId, &projects)
-
-	if err != nil {
-		return projectsService.Project{}, err
 	}
 
 	return project, nil

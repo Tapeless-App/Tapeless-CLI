@@ -133,7 +133,7 @@ var (
 			}
 
 			confirmPrompt := promptui.Prompt{
-				Label:     fmt.Sprintf("AI will generated time entries to fill up the remaining %s hours based on your commits. Confirm?", strconv.FormatFloat(targetHours-sum, 'f', -1, 64)),
+				Label:     fmt.Sprintf("AI will generated time entries to fill up the remaining %s hours based on your commits. Continue", strconv.FormatFloat(targetHours-sum, 'f', -1, 64)),
 				IsConfirm: true,
 				Default:   "y",
 			}

@@ -66,3 +66,14 @@ func GenerateTimeEntries(projectId int, date string, hours float64) (TimeEntryFe
 	return timeEntriesResponse, err
 
 }
+
+func DeleteTimeEntry(projectId int, timeEntryId int) (TimeEntryFetchResponse, error) {
+
+	remainingTimeEntriesResponse := TimeEntryFetchResponse{}
+
+	err := util.MakeAuthRequestAndParseResponse("DELETE", fmt.Sprintf("%s/projects/%d/time/%d", env.ApiURL, projectId, timeEntryId),
+		nil, &remainingTimeEntriesResponse)
+
+	return remainingTimeEntriesResponse, err
+
+}

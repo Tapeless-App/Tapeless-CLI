@@ -68,7 +68,7 @@ var (
 				return
 			}
 
-			projectId, err := prompts.GetProjectIdPrompt("Select the project this repository belongs to", projectIdFlag, projects)
+			project, err := prompts.GetProjectIdPrompt("Select the project this repository belongs to", projectIdFlag, projects)
 
 			if err != nil {
 				fmt.Println("Project selection cancelled")
@@ -86,13 +86,6 @@ var (
 				return
 			}
 
-			project, err := projectService.FilterProjectsById(projectId, &projects)
-
-			if err != nil {
-				fmt.Println("Error:", err)
-				return
-			}
-
 			projectName := project.Name
 			localGitConfig.Name = strings.Join([]string{projectName, localGitConfig.Name}, "/")
 
@@ -103,7 +96,7 @@ var (
 			fmt.Println("Git Config Name:", localGitConfig.Name)
 
 			existingConfigIndex := slices.IndexFunc(repositories, func(r repoService.Repository) bool {
-				return r.ProjectId == projectId && r.Path == localGitConfig.Path
+				return r.ProjectId == project.Id && r.Path == localGitConfig.Path
 			})
 
 			if existingConfigIndex != -1 {
@@ -111,7 +104,7 @@ var (
 				return
 			}
 
-			gitConfigResponse, err := repoService.CreateGitConfig(projectId, localGitConfig)
+			gitConfigResponse, err := repoService.CreateGitConfig(project.Id, localGitConfig)
 
 			if err != nil {
 				fmt.Println("Error creating git config:", err)

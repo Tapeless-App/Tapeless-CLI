@@ -8,6 +8,8 @@ import (
 	"github.com/manifoldco/promptui"
 	projectService "tapeless.app/tapeless-cli/services/projects"
 	reposService "tapeless.app/tapeless-cli/services/repos"
+
+	timeService "tapeless.app/tapeless-cli/services/time"
 	"tapeless.app/tapeless-cli/util"
 )
 
@@ -99,10 +101,18 @@ func GetRepositoryPrompt(label string, repositories []reposService.Repository, p
  * Get the project ID for the repository
  * Will use the flag if it is set, otherwise prompt the user with a list of projects
  */
-func GetProjectIdPrompt(label string, projectIdFlag int, projects []projectService.Project) (int, error) {
+func GetProjectIdPrompt(label string, projectIdFlag int, projects []projectService.Project) (projectService.Project, error) {
+	return GetProjectIdPromptWithDefault(label, projectIdFlag, projects, -1)
+}
+
+/**
+ * Get the project ID for the repository
+ * Will use the flag if it is set, otherwise prompt the user with a list of projects
+ */
+func GetProjectIdPromptWithDefault(label string, projectIdFlag int, projects []projectService.Project, defaultProjectId int) (projectService.Project, error) {
 
 	if projectIdFlag != -1 {
-		return projectIdFlag, nil
+		return projectService.FilterProjectsById(projectIdFlag, &projects)
 	}
 
 	activeItems := make([]projectService.Project, 0)
@@ -151,6 +161,68 @@ func GetProjectIdPrompt(label string, projectIdFlag int, projects []projectServi
 
 	items := slices.Concat(activeItems, completedItems)
 
+	defaultIndex := slices.IndexFunc(items, func(p projectService.Project) bool {
+		return p.Id == defaultProjectId
+	})
+
+	if defaultIndex == -1 {
+		defaultIndex = 0
+	}
+
+	prompt := promptui.Select{
+		Templates: templates,
+		Label:     label,
+		Items:     items,
+		Size:      len(items),
+		CursorPos: defaultIndex,
+	}
+
+	index, _, err := prompt.Run()
+
+	if err != nil {
+		return projectService.Project{}, err
+	}
+
+	return projectService.FilterProjectsById(items[index].Id, &projects)
+}
+
+func SelectTimeEntryPrompt(label string, timeEntries []timeService.TimeEntry) (timeService.TimeEntry, error) {
+
+	type TimeEntrySelect struct {
+		timeService.TimeEntry
+		ShortDescription string
+	}
+
+	items := make([]TimeEntrySelect, 0)
+
+	templates := &promptui.SelectTemplates{
+		Label:    `{{ . }}:`,
+		Active:   "> {{ .ShortDescription | cyan }} | {{.Hours}} hours",
+		Inactive: "  {{ .ShortDescription | cyan }} | {{.Hours}} hours",
+		Selected: "{{ .ShortDescription }}",
+		Details: `
+--------- Time Entry: {{ .ShortDescription }} ----------
+{{ "Id:" | faint }}	{{ .Id }}
+{{ "Date:" | faint }}	{{ .Date }}
+{{ "Hours:" | faint }}	{{ .Hours }}
+{{ "Description:" | faint }}	{{ .Description }}
+
+ `}
+
+	for _, entry := range timeEntries {
+
+		shortDescription := entry.Description
+
+		if len(entry.Description) > 20 {
+			shortDescription = entry.Description[:20] + "..."
+		}
+
+		items = append(items, TimeEntrySelect{
+			TimeEntry:        entry,
+			ShortDescription: shortDescription,
+		})
+	}
+
 	prompt := promptui.Select{
 		Templates: templates,
 		Label:     label,
@@ -161,8 +233,8 @@ func GetProjectIdPrompt(label string, projectIdFlag int, projects []projectServi
 	index, _, err := prompt.Run()
 
 	if err != nil {
-		return -1, err
+		return timeService.TimeEntry{}, err
 	}
 
-	return items[index].Id, nil
+	return items[index].TimeEntry, nil
 }
