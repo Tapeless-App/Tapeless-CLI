@@ -30,6 +30,8 @@ Download the correct windows artifact from the [latest releases](https://github.
 1. `tapeless projects add` allows you to create a new projects
 1. `tapeless repos add` will add the working directory as a git repository to one of your projects
 1. `tapeless sync` will push the git commits of all your registered repositories to the respective projects on tapeless
+1. `tapeless time add` to add new time entries
+1. `tapeless time generate` will use AI to generate time entries based on your synced commits
 1. `tapeless open` will open the [Tapeless web application](https://tapeless.app) in your default browser
 
 ## Local Config
