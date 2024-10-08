@@ -15,8 +15,12 @@ func init() {
 }
 
 var statusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Get your Tapeless setup and configuration status",
+	Use:     "setup",
+	Aliases: []string{"status"},
+	Short:   "Get your Tapeless setup and configuration status",
+	PostRun: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Note: You can run 'tapeless setup' at any time to get the next steps.")
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		token := viper.GetString("token")
@@ -25,7 +29,7 @@ var statusCmd = &cobra.Command{
 
 		if token == "" {
 			fmt.Println("Not logged in.")
-			fmt.Println("Next step: Run `tapeless login` login to tapeless.")
+			fmt.Println("Next step: Run 'tapeless login' login to tapeless.")
 			return
 		}
 
@@ -33,17 +37,18 @@ var statusCmd = &cobra.Command{
 
 		if err != nil {
 			fmt.Println("Error verifying access token:", err)
-			fmt.Println("Next step: Try to run `tapeless login` - if that doesn't work try deleting the config file and starting over.")
+			fmt.Println("Next step: Try to run 'tapeless login' - if that doesn't work try deleting the config file and starting over.")
 			return
 		}
 
 		if isExpired {
 			fmt.Println("JWT token expired.")
-			fmt.Println("Next step: Run `tapeless login` login to tapeless.")
+			fmt.Println("Next step: Run 'tapeless login' login to tapeless.")
 			return
 		}
 
-		fmt.Println("Logged in.")
+		fmt.Println("You are logged in.")
+		fmt.Println()
 
 		fmt.Println("=== Project Setup ===")
 
@@ -56,12 +61,14 @@ var statusCmd = &cobra.Command{
 
 		if len(projects) == 0 {
 			fmt.Println("No projects found.")
-			fmt.Println("Next step: Run `tapeless projects add` to add a project.")
+			fmt.Println("Next step: Run 'tapeless projects add' to add a project.")
 			return
 		}
 
 		fmt.Println("Found", len(projects), "projects.")
+		fmt.Println("Info: You can add more projects by running 'tapeless projects add'.")
 
+		fmt.Println()
 		fmt.Println("=== Repository Setup ===")
 
 		repos, err := reposService.FetchAndUpdateRepositories(projects)
@@ -73,13 +80,21 @@ var statusCmd = &cobra.Command{
 
 		if len(repos) == 0 {
 			fmt.Println("No local repositories configured.")
-			fmt.Println("Next step: Run `tapeless repos add` to add a repository.")
+			fmt.Println("Next step: Run 'tapeless repos add' to add a repository.")
 			return
 		}
 
 		fmt.Println("Found", len(repos), "repositories.")
+		fmt.Println("Info: You can add more repositories by running 'tapeless repos add'.")
 
-		fmt.Println("Next step: Run `tapeless sync` to sync your repositories with Tapeless.")
+		fmt.Println()
+		fmt.Println("=== Summary ===")
+		fmt.Println("You are all set up and ready to go!")
+		fmt.Println("Run 'tapeless sync' to push your commits to tapeless.")
+		fmt.Println("Generate time entries by running 'tapeless time generate'.")
+		fmt.Println("Add manual time entries by running 'tapeless time add'.")
+		fmt.Println()
+		fmt.Println("We hope you enjoy using Tapeless!")
 
 	},
 }
