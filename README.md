@@ -24,7 +24,7 @@ Download the correct windows artifact from the [latest releases](https://github.
 
 ### Usage
 
-1. `tapeless status` check your setup and see what action to perform next
+1. `tapeless setup` check your setup and see what action to perform next
 1. `tapeless version` verify installation and ensure you are using the latest version
 1. `tapeless login` will setup your session by logging into tapeless via the web UI
 1. `tapeless projects add` allows you to create a new projects
