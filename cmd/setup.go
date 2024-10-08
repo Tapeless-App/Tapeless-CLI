@@ -20,7 +20,7 @@ func init() {
 var statusCmd = &cobra.Command{
 	Use:     "setup",
 	Aliases: []string{"status"},
-	Short:   "Get your Tapeless setup and configuration status",
+	Short:   "Check the status of your Tapeless setup and what to do next",
 	PostRun: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Check your next steps at any time, simply re-run: ", green("'tapeless setup'"))
 	},
