@@ -143,6 +143,8 @@ func FetchAndUpdateRepositories(projects []projectsService.Project) ([]Repositor
 		return nil, err
 	}
 
+	removeIndexes := make([]int, 0)
+
 	for repoIndex := range repositories {
 
 		repo := &repositories[repoIndex]
@@ -159,7 +161,7 @@ func FetchAndUpdateRepositories(projects []projectsService.Project) ([]Repositor
 		// Delete any repositories that no longer have a matching Git Config
 		if matchingGitConfig.Id == 0 {
 			// remove the repository from the local configuration
-			repositories = append(repositories[:repoIndex], repositories[repoIndex+1:]...)
+			removeIndexes = append([]int{repoIndex}, removeIndexes...)
 			continue
 		}
 
@@ -167,6 +169,11 @@ func FetchAndUpdateRepositories(projects []projectsService.Project) ([]Repositor
 		repo.Name = matchingGitConfig.Name
 		repo.AuthorEmail = matchingGitConfig.AuthorEmail
 		repo.OriginUrl = matchingGitConfig.RepositoryUrl
+	}
+
+	// Delete the repositories that no longer have a matching Git Config
+	for _, index := range removeIndexes {
+		repositories = append(repositories[:index], repositories[index+1:]...)
 	}
 
 	err = persistRepositories(repositories)
