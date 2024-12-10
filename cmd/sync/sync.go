@@ -22,10 +22,12 @@ import (
 func init() {
 	cmd.RootCmd.AddCommand(SyncCmd)
 	SyncCmd.Flags().BoolVarP(&includeInactiveFlag, "include-completed", "i", false, "Sync repositories all projects, even if they have been completed for more than 30 days")
+	SyncCmd.Flags().BoolVarP(&acceptAllFlag, "accept-all", "a", false, "Accept all commits without prompting")
 }
 
 var (
 	includeInactiveFlag bool
+	acceptAllFlag       bool
 	SyncCmd             = &cobra.Command{
 		Use:   "sync",
 		Short: "Sync the commits from your repositories with Tapeless, will sync all running projects or that have ended within the last 30 days",
@@ -110,7 +112,7 @@ var (
 				}
 
 				// If repo.LastSync is empty, ask the user before proceeding using promptui
-				if repo.LatestSync == "" {
+				if repo.LatestSync == "" && !acceptAllFlag {
 					prompt := promptui.Prompt{
 						Label:     fmt.Sprintf("Repository %s has never been synced before. Do you want to proceed with syncing these commits?", repo.Name),
 						Default:   "Y",
